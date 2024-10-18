@@ -1325,12 +1325,12 @@ def infer(request: TextToImageRequest, pipeline: StableDiffusionXLPipeline) -> I
         generator = None
     else:
         generator = Generator(pipeline.device).manual_seed(request.seed)
-        
+
     return pipeline(
         prompt=request.prompt,
         negative_prompt=request.negative_prompt,
         width=request.width,
         height=request.height,
         generator=generator,
-        num_inference_steps=7,
+        num_inference_steps=8,
     ).images[0]
