@@ -1283,18 +1283,19 @@ class StableDiffusionXLPipeline(
 
 
 def load_pipeline() -> StableDiffusionXLPipeline:
-    vae = AutoencoderTiny.from_pretrained(
-    'madebyollin/taesdxl',
-    use_safetensors=True,
-    torch_dtype=torch.float16,
-    ).to('cuda')
+    # vae = AutoencoderTiny.from_pretrained(
+    # 'vutt/newdream-sdxl-20-tinyvae',
+    # use_safetensors=True,
+    # torch_dtype=torch.float16,
+    # ).to('cuda')
     pipeline = StableDiffusionXLPipeline.from_pretrained(
-        "./models/newdream-sdxl-20",
+        "vutt/newdream-sdxl-20-tinyvae",
         torch_dtype=torch.float16,
         use_safetensors=True,
-        local_files_only=True,
-        vae=vae
+        # local_files_only=True,
+        # vae=vae
     )
+    # pipeline.unet = torch.compile(pipeline.unet)
     #pipeline.vae = AutoencoderTiny.from_pretrained("madebyollin/taesdxl", torch_dtype=torch.float16)
     pipeline.scheduler = UniPCMultistepScheduler.from_config('./src/config',)
     pipeline.to("cuda")
@@ -1320,13 +1321,16 @@ def load_pipeline() -> StableDiffusionXLPipeline:
 
 
 def infer(request: TextToImageRequest, pipeline: StableDiffusionXLPipeline) -> Image:
-    generator = Generator(pipeline.device).manual_seed(request.seed) if request.seed else None
-
+    if request.seed is None:
+        generator = None
+    else:
+        generator = Generator(pipeline.device).manual_seed(request.seed)
+        
     return pipeline(
         prompt=request.prompt,
         negative_prompt=request.negative_prompt,
         width=request.width,
         height=request.height,
         generator=generator,
-        num_inference_steps=0,
+        num_inference_steps=7,
     ).images[0]
